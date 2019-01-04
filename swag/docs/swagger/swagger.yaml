@@ -1,0 +1,103 @@
+definitions:
+  main.Account:
+    properties:
+      id:
+        type: integer
+    type: object
+  main.HTTPError:
+    properties:
+      code:
+        example: 400
+        type: integer
+      message:
+        example: status bad request
+        type: string
+    type: object
+  main.ParamExampleRequest:
+    properties:
+      a:
+        type: string
+      b:
+        type: string
+      c:
+        minimum: 10
+        type: integer
+    required:
+    - a
+    type: object
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: |-
+    This is a sample server Petstore server.
+    get string by ID
+    get string by ID
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Swagger Example API
+  version: "1.0"
+paths:
+  /accounts/{id}:
+    get:
+      consumes:
+      - application/json
+      description: get string by ID
+      operationId: get-string-by-int
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Account'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.HTTPError'
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/main.HTTPError'
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.HTTPError'
+            type: object
+      summary: Show an account
+  /paramexamples:
+    get:
+      consumes:
+      - application/json
+      description: get string by ID
+      operationId: get-string-by-int-poop
+      parameters:
+      - description: A
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/main.ParamExampleRequest'
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Account'
+            type: object
+      summary: Show an account
+swagger: "2.0"

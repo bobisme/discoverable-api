@@ -1,0 +1,168 @@
+{
+  "swagger": "2.0",
+  "paths": {
+    "/accounts": {
+      "get": {
+        "description": "This will show all available accounts by default.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "tags": [
+          "accounts"
+        ],
+        "summary": "Lists accounts filtered by some parameters.",
+        "operationId": "listAccounts",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ListAccountsResponse"
+          },
+          "422": {
+            "$ref": "#/responses/validationError"
+          },
+          "default": {
+            "$ref": "#/responses/genericError"
+          }
+        }
+      }
+    },
+    "/accounts/{id}": {
+      "get": {
+        "description": "This will show the account by the given account ID.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "tags": [
+          "accounts"
+        ],
+        "summary": "Get account.",
+        "operationId": "showAccount",
+        "responses": {
+          "200": {},
+          "422": {
+            "$ref": "#/responses/validationError"
+          },
+          "default": {
+            "$ref": "#/responses/genericError"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "AccountResponse": {
+      "description": "AccountResponse",
+      "type": "object",
+      "properties": {
+        "_links": {
+          "$ref": "#/definitions/AccountResponseLinks"
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ID"
+        }
+      },
+      "x-go-package": "github.com/bobisme/discoverable-api/swagger"
+    },
+    "AccountResponseLinks": {
+      "description": "AccountResponseLinks",
+      "type": "object",
+      "properties": {
+        "collection": {
+          "$ref": "#/definitions/HALLink"
+        },
+        "curies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/HALLink"
+          },
+          "x-go-name": "Curies"
+        },
+        "self": {
+          "$ref": "#/definitions/HALLink"
+        }
+      },
+      "x-go-package": "github.com/bobisme/discoverable-api/swagger"
+    },
+    "HALLink": {
+      "description": "HALLink",
+      "type": "object",
+      "properties": {
+        "href": {
+          "type": "string",
+          "x-go-name": "HREF"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "templated": {
+          "type": "boolean",
+          "x-go-name": "Templated"
+        },
+        "title": {
+          "type": "string",
+          "x-go-name": "Title"
+        }
+      },
+      "x-go-package": "github.com/bobisme/discoverable-api/swagger"
+    }
+  },
+  "responses": {
+    "AccountResponse": {
+      "description": "AccountResponse",
+      "schema": {
+        "$ref": "#/definitions/AccountResponseLinks"
+      },
+      "headers": {
+        "_links": {},
+        "id": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "ListAccountsResponse": {
+      "description": "ListAccountsResponse",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/AccountResponse"
+            },
+            "x-go-name": "Items"
+          }
+        },
+        "$ref": "#/definitions/AccountResponseLinks"
+      },
+      "headers": {
+        "_embedded": {},
+        "_links": {},
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "genericError": {
+      "description": "genericError is an error that is used when the required input fails\nvalidation."
+    },
+    "validationError": {
+      "description": "validationError is an error that is used when the required input fails\nvalidation."
+    }
+  }
+}
