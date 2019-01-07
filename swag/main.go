@@ -69,9 +69,6 @@ func ShowAccount(ctx echo.Context) error {
 		return err
 	}
 	account := &Account{Id: aid}
-	// if err != nil {
-	// 	return err
-	// }
 	return ctx.JSON(http.StatusOK, account)
 }
 
@@ -84,6 +81,7 @@ func NewError(ctx echo.Context, status int, err error) {
 }
 
 type ParamExampleRequest struct {
+	// A is the first parameter I have listed
 	A string `json:"a,omitempty" binding:"required"`
 	B string `json:"b,omitempty"`
 	C int    `json:"c" minimum:"10"`
@@ -95,10 +93,82 @@ type ParamExampleRequest struct {
 // @ID get-string-by-int-poop
 // @Accept  json
 // @Produce  json
-// @Param data body main.ParamExampleRequest true "A"
+// @Param data body main.ParamExampleRequest true "body"
 // @Success 200 {object} main.Account
 // @Router /paramexamples [get]
 func ParamExample() echo.HandlerFunc {
+	specDoc, err := loads.Spec("./docs/swagger/swagger.json")
+	panicIf(err)
+	specDoc, err = specDoc.Expanded()
+	panicIf(err)
+	specc := specDoc.Spec()
+	return func(c echo.Context) error {
+		path, ok := specc.Paths.Paths[c.Path()]
+		if !ok {
+			return c.JSON(http.StatusNotFound, specc.Paths.Paths)
+		}
+		pees := path.Get.Parameters
+		paramsSchema, err := pees[0].JSONLookup("schema")
+		panicIf(err)
+		paramJson, err := json.Marshal(paramsSchema)
+		panicIf(err)
+		fmt.Println(string(paramJson))
+		schemaLoader := gojsonschema.NewBytesLoader(paramJson)
+		fmt.Println(schemaLoader.JsonSource())
+		schema, err := gojsonschema.NewSchema(schemaLoader)
+		panicIf(err)
+		derp := new(ParamExampleRequest)
+		if err := c.Bind(derp); err != nil {
+			return err
+		}
+		result, err := schema.Validate(gojsonschema.NewGoLoader(derp))
+		panicIf(err)
+		if result.Valid() {
+			return c.String(http.StatusOK, "The document is valid")
+		}
+
+		c.Response().Header().Set(
+			echo.HeaderContentType, echo.MIMEApplicationJSON)
+		c.Response().WriteHeader(http.StatusOK)
+		c.Response().Write([]byte(
+			"The document is not valid. see errors :\n"))
+		for _, err := range result.Errors() {
+			// Err implements the ResultError interface
+			fmt.Fprintf(c.Response(), "- %s\n", err)
+		}
+		return nil
+	}
+}
+
+type HALLink struct {
+	HREF      string `json:"href"`
+	Title     string `json:"title"`
+	Templated bool   `json:"templated"`
+}
+
+type ParamsResource struct {
+	Links map[string]HALLink `json:"_links"`
+	A     string             `json:"a"`
+	B     string             `json:"b"`
+	C     int                `json:"c"`
+}
+
+type ParamsPage struct {
+	Links    map[string]HALLink `json:"_links"`
+	Embedded []ParamsResource   `json:"_embedded"`
+	Total    int                `json:"total"`
+}
+
+// ParamsExample godoc
+// @Summary Show an account
+// @Description get string by ID
+// @ID get-string-by-int-poop
+// @Accept  json
+// @Produce  json
+// @Param data body main.ParamExampleRequest true "body"
+// @Success 200 {object} []main.Account
+// @Router /paramexamples [get]
+func ParamsExample() echo.HandlerFunc {
 	specDoc, err := loads.Spec("./docs/swagger/swagger.json")
 	panicIf(err)
 	specDoc, err = specDoc.Expanded()

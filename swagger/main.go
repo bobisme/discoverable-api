@@ -1,12 +1,18 @@
 package main
 
 import (
+	"fmt"
+	"io"
+	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 
+	"github.com/ghodss/yaml"
 	"github.com/go-openapi/loads"
+	"github.com/go-openapi/spec"
 	"github.com/labstack/echo"
 )
 
@@ -46,7 +52,116 @@ func swaggerMiddleware(filepath string) echo.MiddlewareFunc {
 	}
 }
 
+func underline(s string, b byte, writer io.Writer) {
+	_, err := writer.Write([]byte(s))
+	panicIf(err)
+	_, err = writer.Write([]byte{'\n'})
+	panicIf(err)
+	underline := []byte{b}
+	for i := 0; i < len(s); i++ {
+		_, err := writer.Write(underline)
+		panicIf(err)
+	}
+	_, err = writer.Write([]byte("\n\n"))
+	panicIf(err)
+}
+
+func h1(s string, writer io.Writer) {
+	underline(s, '=', writer)
+}
+
+func h2(s string, writer io.Writer) {
+	underline(s, '-', writer)
+}
+
+func h3(s string, writer io.Writer) {
+	writer.Write([]byte("### "))
+	writer.Write([]byte(s))
+	writer.Write([]byte("\n\n"))
+}
+
+func specPath2md(uri string, method string, op *spec.Operation, out io.Writer) {
+	writeString := func(s string) {
+		out.Write([]byte(s))
+	}
+	h2(fmt.Sprintf("%s %s", method, uri), out)
+	fmt.Fprintf(out, "%s\n\n", op.Summary)
+	fmt.Fprintf(out, "%s\n\n", op.Description)
+
+	{
+		print := func(label string, things []string) {
+			if len(things) > 0 {
+				fmt.Fprintf(out, "%s: %s\n", label, strings.Join(op.Schemes, ", "))
+			}
+		}
+		print("Schemes", op.Schemes)
+		print("Consumes", op.Schemes)
+		print("Produces", op.Schemes)
+		print("Tags", op.Schemes)
+	}
+	fmt.Fprintln(out, "")
+
+	h3("Parameters", out)
+	if op.Parameters == nil {
+		fmt.Fprintf(out, "*No parameters.*\n\n")
+	} else {
+		// out.Write([]byte("    "))
+		// paramsJSON, err := yaml.MarshalIndent(op.Parameters, "    ", "  ")
+		paramscode, err := yaml.Marshal(op.Parameters)
+		panicIf(err)
+		out.Write(paramscode)
+		writeString("\n\n")
+	}
+
+	h3("Responses", out)
+	for status, resp := range op.Responses.StatusCodeResponses {
+		fmt.Fprintf(out, "#### %d: %s\n\n", status, http.StatusText(status))
+		// writeString("    ")
+		// respCode, err := json.MarshalIndent(resp, "    ", "  ")
+		respCode, err := yaml.Marshal(resp)
+		panicIf(err)
+		out.Write(respCode)
+		writeString("\n\n")
+	}
+	// &{VendorExtensible:{Extensions:map[]} OperationProps:{Description:This will show all available accounts by default. Consumes:[application/json] Produces:[application/json] Schemes:[https] Tags:[accounts] Summary:Lists accounts filtered by some parameters. ExternalDocs:<nil> ID:listAccounts Deprecated:false Security:[] Parameters:[] Responses:0xc00000d840}}⏎
+}
+
+func spec2md(filepath string) {
+	specDoc, err := loads.Spec(filepath)
+	panicIf(err)
+	specDoc, err = specDoc.Expanded()
+	panicIf(err)
+	s := specDoc.Spec()
+	basePath := "/api/v1"
+	// searchPath := "/accounts"
+	// fullPath := basePath + searchPath
+
+	out, err := os.Create("./docs.md")
+	panicIf(err)
+	defer out.Close()
+
+	for uri, path := range s.Paths.Paths {
+		h1(uri, out)
+		ops := map[string]*spec.Operation{
+			"GET":     path.Get,
+			"POST":    path.Post,
+			"DELETE":  path.Delete,
+			"PUT":     path.Put,
+			"HEAD":    path.Head,
+			"OPTIONS": path.Options,
+		}
+		for method, op := range ops {
+			if op != nil {
+				specPath2md(basePath+uri, method, op, out)
+			}
+		}
+	}
+}
+
 func main() {
+	spec2md("../swag/docs/swagger/swagger.json")
+	log.Println("wrote docs to docs.md")
+
 	e := echo.New()
 	e.Use(swaggerMiddleware("./swagger.json"))
 	e.GET("/", func(c echo.Context) error {

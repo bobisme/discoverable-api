@@ -16,6 +16,7 @@ definitions:
   main.ParamExampleRequest:
     properties:
       a:
+        description: A is the first parameter I ahve listed
         type: string
       b:
         type: string
