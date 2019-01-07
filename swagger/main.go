@@ -109,8 +109,9 @@ func specPath2md(uri string, method string, op *spec.Operation, out io.Writer) {
 		// paramsJSON, err := yaml.MarshalIndent(op.Parameters, "    ", "  ")
 		paramscode, err := yaml.Marshal(op.Parameters)
 		panicIf(err)
+		writeString("```yaml\n")
 		out.Write(paramscode)
-		writeString("\n\n")
+		writeString("```\n\n")
 	}
 
 	h3("Responses", out)
@@ -120,8 +121,9 @@ func specPath2md(uri string, method string, op *spec.Operation, out io.Writer) {
 		// respCode, err := json.MarshalIndent(resp, "    ", "  ")
 		respCode, err := yaml.Marshal(resp)
 		panicIf(err)
+		writeString("```yaml\n")
 		out.Write(respCode)
-		writeString("\n\n")
+		writeString("```\n\n")
 	}
 	// &{VendorExtensible:{Extensions:map[]} OperationProps:{Description:This will show all available accounts by default. Consumes:[application/json] Produces:[application/json] Schemes:[https] Tags:[accounts] Summary:Lists accounts filtered by some parameters. ExternalDocs:<nil> ID:listAccounts Deprecated:false Security:[] Parameters:[] Responses:0xc00000d840}}⏎
 }

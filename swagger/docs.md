@@ -11,41 +11,19 @@ get string by ID
 
 ### Parameters
 
+```yaml
 - description: Account ID
   in: path
   name: id
   required: true
   type: integer
-
+```
 
 ### Responses
 
-#### 200: OK
-
-description: OK
-schema:
-  properties:
-    id:
-      type: integer
-  type: object
-
-
-#### 400: Bad Request
-
-description: Bad Request
-schema:
-  properties:
-    code:
-      example: 400
-      type: integer
-    message:
-      example: status bad request
-      type: string
-  type: object
-
-
 #### 404: Not Found
 
+```yaml
 description: Not Found
 schema:
   properties:
@@ -56,10 +34,11 @@ schema:
       example: status bad request
       type: string
   type: object
-
+```
 
 #### 500: Internal Server Error
 
+```yaml
 description: Internal Server Error
 schema:
   properties:
@@ -70,7 +49,33 @@ schema:
       example: status bad request
       type: string
   type: object
+```
 
+#### 200: OK
+
+```yaml
+description: OK
+schema:
+  properties:
+    id:
+      type: integer
+  type: object
+```
+
+#### 400: Bad Request
+
+```yaml
+description: Bad Request
+schema:
+  properties:
+    code:
+      example: 400
+      type: integer
+    message:
+      example: status bad request
+      type: string
+  type: object
+```
 
 /paramexamples
 ==============
@@ -85,6 +90,7 @@ get string by ID
 
 ### Parameters
 
+```yaml
 - description: A
   in: body
   name: data
@@ -102,17 +108,18 @@ get string by ID
     required:
     - a
     type: object
-
+```
 
 ### Responses
 
 #### 200: OK
 
+```yaml
 description: OK
 schema:
   properties:
     id:
       type: integer
   type: object
-
+```
 
